@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh" class="app-loading">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>MBTI 16人格连连看</title>
+<style>
+html.app-loading,html.app-loading body{background:#f5f3ed!important}
+html.app-loading body>*{visibility:hidden!important}
+html.app-loading::after{content:"正在加载…";position:fixed;inset:0;display:grid;place-items:center;color:#526582;font:16px system-ui,sans-serif}
+</style>
+<link rel="stylesheet" href="styles.css?v=release-20261116-1">
+<link rel="stylesheet" href="hybrid.css?v=release-20261116-1">
+</head>
+<body>
+
+<div id="ft"></div>
+<div id="gw">
+  <!-- 关卡选择 -->
+  <div id="ls">
+    <h1>MBTI 16人格连连看</h1>
+    <div id="best-disp"></div>
+    <div id="achievement-actions"><button class="pab" id="reopen-poster" hidden>🎨 通关海报</button><select id="share-level-choice" aria-label="选择要分享的已通关关卡"></select><button class="pab" id="share-level-home" hidden>🖼️ 分享关卡</button></div>
+    <div id="perfect-tip" style="font-size:11px;color:#888;text-align:center;margin-bottom:10px;line-height:1.6;">
+      完美通关条件：<span style="color:#f1c40f">零点错</span> + <span style="color:#4aff7a">时间内清场</span> → 额外+100分 🏆
+    </div>
+    <div id="lg"></div>
+    <nav id="endless-dock" aria-label="无尽模式快捷入口" hidden><span class="endless-dock-icon" aria-hidden="true">∞</span><div class="endless-dock-info"><strong>无尽模式</strong><small id="endless-dock-round"></small></div><button id="endless-dock-play" type="button">继续挑战 →</button></nav>
+    <div id="inf-entry" style="display:none;margin-top:16px;text-align:center;">
+      <button type="button" style="width:100%;font-family:inherit;border:1px solid #f1c40f;border-radius:12px;padding:14px;background:linear-gradient(135deg,rgba(241,196,15,0.1),rgba(231,76,60,0.05));cursor:pointer;" id="inf-entry-btn">
+        <div style="font-size:22px;margin-bottom:4px;">♾</div>
+        <div style="color:#f1c40f;font-size:15px;font-weight:500;">无尽模式</div>
+        <div id="inf-entry-best" style="font-size:11px;color:#aaa;margin-top:3px;"></div>
+        <div style="font-size:11px;color:#888;margin-top:4px;">随机关卡 · 挑战极限</div>
+      </button>
+    </div>
+    <footer id="game-credit">本游戏由Veki独立开发，Wechat：Vekli1213。</footer>
+  </div>
+  <!-- 游戏 -->
+  <div id="gs">
+    <div id="tb">
+      <div id="lb2"><button id="bk">← 返回</button><span id="lt"></span></div>
+      <div id="sa">
+        <div class="st"><div class="sl">分数</div><div class="sv" id="sc">0</div></div>
+        <div class="st"><div class="sl">剩余</div><div class="sv" id="rm">0</div></div>
+        <div class="st"><div class="sl">时间</div><div class="sv" id="tm">60</div></div>
+      </div>
+      <div id="ctrl">
+<button class="cb" id="sound-toggle" type="button" aria-pressed="true">🔊 声音：开</button>
+        <button class="cb" id="bh">💡</button>
+        <button class="cb" id="pause">⏸ 暂停</button>
+        <button class="cb" id="bsf" title="重新排列剩余图片，保留当前分数和剩余时间">🔀 洗牌</button>
+        <button class="cb" id="br" title="重新开始本关，分数和倒计时重置">🔄 重开</button>
+      </div>
+    </div>
+    <div id="combo-disp"></div>
+    <div id="pw"><div id="pb"></div></div>
+    <div id="mobile-rules"><button id="rules-open" type="button"><span id="mobile-hint-cost">提示扣10分</span> · 3连起加时 <span>ⓘ 规则</span></button></div>
+    <dialog id="rules-dialog" aria-labelledby="rules-title"><h2 id="rules-title">游戏规则</h2><p>💡 提示每局依次扣10／20／30分，最低扣至0分。</p><p>⏱ 连续2秒内配对，3连起奖励时间。每局累计加时上限：普通20秒，无尽10秒。</p><button id="rules-close" type="button">知道了，继续游戏</button></dialog>
+    <p id="hint-cost-note" class="hint-cost-note"></p>
+    <div class="combo-rule">连续2秒内配对，3连起奖励时间 · 普通最多+20秒，无尽最多+10秒</div><div id="msg">点击两个相同的角色消除！</div>
+    <div id="gc">
+      <canvas id="cv"></canvas>
+      <div id="ov">
+        <div id="ob">
+          <div class="result-share-top"><button class="ob" id="share-level-result" hidden>🖼️ 分享本关成绩</button></div>
+          <div id="ot"></div><div id="os2"></div><div id="os"></div><div id="score-details" aria-label="得分明细"></div>
+          <div id="ph">生成海报后自动解锁无尽模式</div>
+          <div class="result-actions">
+            <button class="ob" id="b-again">🔄 再来</button>
+            <button class="ob" id="b-quiz" aria-describedby="quiz-next-note"><span aria-hidden="true">🧠</span><span>答题闯关</span></button>
+
+            <button class="ob" id="b-lvls">📋 关卡</button>
+          </div>
+          <p id="quiz-next-note" hidden>答对进入下一关</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- 答题 -->
+<div id="qs">
+  <div id="qb">
+    <div class="quiz-navigation"><button type="button" id="quiz-home" aria-label="返回主页" title="返回主页"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true"><path d="m14 5-7 7 7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span class="quiz-navigation-label">人格问答</span></div>
+    <div id="qq">🧠 猜猜这个角色对应的 MBTI 人格类型</div>
+    <img id="qi" src="" alt=""/>
+    <div id="qn"></div>
+    <div id="qh">答对进入<span class="quiz-next-highlight">下一关</span>；答错进入「<span class="quiz-fall-highlight">跳楼</span>」挑战</div>
+    <div id="qopts"></div>
+    <div id="qr"></div>
+    <div class="quiz-actions"><button type="button" id="qcont" style="display:none">继续</button></div>
+  </div>
+</div>
+<!-- 海报 -->
+<div id="ps">
+  <div id="pw2">
+    <header class="poster-heading"><span class="poster-eyebrow">通关纪念 · PERSONALITY QUEST</span><div class="poster-title-row"><h1 id="pt">制作你的 MBTI 纪念海报</h1><button id="pcls" type="button" aria-label="返回单元闯关" title="返回单元闯关"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m14 6-6 6 6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><p>选好人格，留下这次冒险的专属纪念。</p></header>
+    <div id="poster-form">
+    <div class="psec">
+      <div class="mbti-heading"><label class="plab" for="pmi">选择你的人格类型</label><span>16 种人格</span></div><p class="mbti-help">直接点选，或输入四位字母</p>
+      <input id="pmi" maxlength="4" placeholder="例如 ENFP" autocomplete="off" spellcheck="false" aria-describedby="pvh"/>
+      <select id="mbti-mobile" aria-label="选择你的人格类型" aria-describedby="pvh"><option value="">请选择 MBTI 类型</option></select>
+      <div id="mbti-picker"><button type="button" id="mbti-trigger" aria-expanded="false" aria-controls="mbti-menu"><span id="mbti-choice">请选择 MBTI 类型</span><svg class="mbti-chevron" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="m5 7.5 5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div id="mbti-menu" hidden><div class="mbti-tabs"><button type="button" data-group="I">I 开头（8种）</button><button type="button" data-group="E">E 开头（8种）</button></div><div id="mbti-options"></div><p>先选首字母，再点选人格类型</p></div></div><div id="pvh"></div>
+      <div id="pchips"></div>
+    </div>
+    <div class="psec">
+      <div class="avatar-heading"><strong>制作你的专属形象</strong><span>可选</span></div><p class="avatar-caption">选择人格后可预览三种风格，也可以上传自己的头像。</p>
+      <!-- 风格选择 -->
+      <div class="poster-style-options">
+        <button class="px-style on" data-style="stardew" style="padding:5px 10px;border-radius:6px;border:1px solid #4a90e2;background:#1a3a6a;color:#eee;cursor:pointer;font-size:11px;"><img class="style-example" hidden alt="角色风格预览">👾 像素风</button>
+        <button class="px-style" data-style="chibi" style="padding:5px 10px;border-radius:6px;border:1px solid #444;background:#0f2040;color:#aaa;cursor:pointer;font-size:11px;"><img class="style-example" hidden alt="角色风格预览">🐱 Q版卡通</button>
+        <button class="px-style" data-style="flat" style="padding:5px 10px;border-radius:6px;border:1px solid #444;background:#0f2040;color:#aaa;cursor:pointer;font-size:11px;"><img class="style-example" hidden alt="角色风格预览">🎨 扁平插画</button>
+      </div>
+      <div class="avatar-workbench">
+        <!-- 原图预览 -->
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <div class="avatar-source-frame">
+          <div role="button" tabindex="0" aria-label="上传头像，上传后可拖动取景" id="av-wrap" style="position:relative;width:80px;height:80px;border-radius:4px;overflow:hidden;border:2px solid #444;background:#16213e;cursor:grab;flex-shrink:0;image-rendering:pixelated;">
+            <div id="av-placeholder" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#555;font-size:11px;cursor:pointer;text-align:center;line-height:1.4;"></div>
+            <canvas id="av-canvas" width="80" height="80" style="display:none;position:absolute;top:0;left:0;image-rendering:pixelated;image-rendering:crisp-edges;"></canvas>
+          </div>
+          <button id="avatar-upload" type="button" aria-label="上传本地头像" title="上传本地头像"><svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3m-5 5 5-5 5 5M4 15v5h16v-5"/></svg></button>
+          <button id="av-clear" type="button" aria-label="清除上传的图片" title="清除图片" style="display:none"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+          </div>
+          <label for="avatar-upload" class="avatar-source-label">从本地上传</label>
+        </div>
+        <span class="avatar-convert-mark" aria-hidden="true">⇢</span>
+        <!-- 像素预览 -->
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <div class="avatar-effect-frame">
+          <canvas id="px-canvas" width="80" height="80" style="border-radius:4px;border:2px solid #4a90e2;background:#0a0a20;image-rendering:pixelated;image-rendering:crisp-edges;display:block;"></canvas>
+          <div id="avatar-effect-loading" role="status" hidden><span class="avatar-spinner" aria-hidden="true"></span><strong>正在生成</strong><span>预计需要几十秒</span></div>
+          <button id="avatar-start" type="button" aria-label="开始生成专属头像" title="开始生成专属头像" hidden><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 4H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-8"/><circle cx="8" cy="9" r="1.5"/><path d="m3 17 5-5 4 4 3-3 6 6"/><path d="m18 2 1.2 3.8L23 7l-3.8 1.2L18 12l-1.2-3.8L13 7l3.8-1.2Z" fill="currentColor" stroke="none"/></svg></button>
+          <button id="avatar-retry" type="button" aria-label="重新生成" title="重新生成" hidden><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7v5h-5M20 12a8 8 0 1 0-2 5M20 7l-3-3"/></svg></button>
+          </div>
+          <div style="font-size:9px;color:#4aafff;font-family:monospace;" id="avatar-preview-label">生成效果</div>
+        </div>
+        <!-- 操作 -->
+        <input id="pavf" type="file" accept="image/*" style="display:none"/>
+      </div>
+      <div id="av-hint" style="font-size:10px;color:#666;margin-top:6px;display:none;">拖拽调整取景区域</div>
+      <div class="avatar-main-action"><button id="avatar-generate" type="button" class="pab pri" disabled>✨ 确认生成</button>
+      </div><div role="status" aria-live="polite" id="ai-gen-hint" style="font-size:11px;color:#4aafff;margin-top:4px;min-height:16px;"></div>
+    </div>
+    </div><!-- /poster-form -->
+    <button id="pgb" class="off">✨ 生成纪念海报</button>
+    <div id="pcw" style="display:none;">
+      <canvas id="pc2" width="420" height="680"></canvas>
+      <button class="pab invite-game" id="invite-game">🔗 分享游戏 · 邀请朋友</button>
+      <div class="pacts">
+        <button class="pab pri" id="psave">💾 保存图片</button>
+        <button class="pab" id="pregen">🔄 重新生成</button>
+        <button class="pab" id="pshare" aria-label="返回主页" title="返回主页">🏠 返回主页</button>
+      </div>
+    </div>
+  </div>
+</div>
+<dialog id="share-dialog" aria-labelledby="share-heading">
+  <div class="share-top"><h2 id="share-heading">分享海报</h2><button type="button" id="share-close" aria-label="关闭分享">✕</button></div>
+  <p id="share-help"></p>
+  <img id="share-poster-image" alt="我的通关海报，附游戏二维码">
+  <label for="invite-copy">邀请文案</label>
+  <textarea id="invite-copy" readonly rows="3"></textarea>
+  <div class="share-actions"><button class="pab pri" id="copy-invite">📋 复制邀请文案</button><button class="pab" id="download-poster">💾 保存图片</button></div>
+  <p id="share-feedback" role="status"></p>
+</dialog>
+<!-- 无限模式 -->
+<div id="inf">
+  <div id="infb">
+    <div style="font-size:22px;font-weight:500;color:#f1c40f;margin-bottom:8px">🚀 无限模式</div>
+    <div style="font-size:14px;color:#aaa;margin-bottom:20px">每轮随机挑战：分数、收集人格、解锁锁块、送背包到底。每两轮提升难度，倒计时由65秒逐步缩短至50秒。</div>
+    <div class="scr"><span style="font-size:13px;color:#888">本局得分</span><span style="font-size:16px;font-weight:500;color:#eee" id="inf-cur">0</span></div>
+    <div class="scr"><span style="font-size:13px;color:#f1c40f">♾ 无尽最高分</span><span style="font-size:16px;font-weight:500;color:#f1c40f" id="inf-best">0</span></div>
+    <div style="margin-top:20px;display:flex;flex-direction:column;gap:10px;">
+      <button class="pab pri" id="inf-play" style="padding:12px;font-size:15px;">开始挑战</button>
+      <button class="pab" id="inf-back">返回主界面</button>
+    </div>
+  </div>
+</div>
+<!-- 惩罚游戏 -->
+<div id="fs">
+  <div id="fall-tools"><button id="fall-back" type="button" aria-label="返回答题" title="返回答题"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m6-6-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div id="fhd"><span id="ftl">下楼挑战</span><span id="fsc">第 0 层</span></div><button id="fall-pause" type="button" aria-label="暂停挑战"><svg viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="5" fill="#62a7ff"/><path d="M8 7h3v10H8zm5 0h3v10h-3z" fill="white"/></svg></button></div>
+  <div id="fall-stage" style="position:relative;">
+    <canvas id="fca"></canvas>
+    <dialog id="fres" aria-label="跳楼挑战结果"></dialog>
+  </div>
+  <div id="fall-motion"><span id="tilt-status" role="status">点中间开启倾斜操控，左右倾斜手机移动</span></div>
+  <div id="fctrl"><button type="button" id="fl" aria-label="向左移动">◀</button><button id="tilt-toggle" type="button" aria-pressed="false" aria-label="开启倾斜操控"><span class="tilt-icon" aria-hidden="true">📱</span><span class="tilt-label">倾斜操控</span></button><button type="button" id="fr" aria-label="向右移动">▶</button></div>
+  <details id="fall-rules"><summary>玩法说明</summary>
+    <div class="fall-guide-grid">
+      <section><h3>左右移动</h3><p>电脑使用 ← / → 或 A / D；手机长按下方方向键，也可开启倾斜操控。</p></section>
+      <section><h3>认清平台</h3><ul class="fall-platform-list"><li><i class="platform-green"></i>绿台 · 弹跳</li><li><i class="platform-orange"></i>橙台 · 踩后消失</li><li><i class="platform-blue"></i>蓝台 · 搭乘移动</li><li><i class="platform-red"></i>红台 · 避开尖刺</li></ul></section>
+      <section class="fall-shield-guide"><h3>紫色答案台 · 记住人格答案</h3><p>踩上后获得一次尖刺保护：<strong>简单 3 秒 · 普通 2.5 秒 · 困难 2 秒</strong>。</p><p>抵挡尖刺后保护消失，获得 0.8 秒缓冲。最多一层，不叠加、不续时；同一平台只能领取一次，暂停时倒计时冻结。</p></section>
+    </div>
+  </details>
+</div>
+<dialog id="journey-intro" aria-labelledby="journey-title">
+  <h2 id="journey-title">两种游戏，一路闯关</h2>
+  <p class="journey-sub">先消除，再答题，挑战你的 MBTI 直觉！</p>
+  <div class="journey-step"><span aria-hidden="true">🧩</span><div><strong>连连看通关 → MBTI 答题</strong><p>答对，进入下一关。</p></div></div>
+  <div class="journey-step"><span aria-hidden="true">⬇️</span><div><strong>答错 → 挑战「下楼」</strong><p>难度随机；通过后重新答题。挑战失败可重玩，也可直接重新答题。</p></div></div>
+  <div class="journey-step"><span aria-hidden="true">🏆</span><div><strong>完成十关 → 通关海报 + 无尽模式</strong><p>生成海报后自动解锁无尽模式，挑战随机棋盘、刷新最高分。</p></div></div>
+  <button id="journey-start" type="button">明白了，开始闯关 →</button>
+</dialog>
+<script src="data.js?v=release-20261116-1"></script>
+<script src="audio.js?v=release-20261116-1"></script>
+<script src="game.js?v=release-20261116-1"></script>
+
+<script src="hybrid-engine.js?v=release-20261116-1"></script>
+<script src="hybrid-levels.js?v=release-20261116-1"></script>
+<script src="hybrid-ui.js?v=boot-20261116-2"></script>
+
+<script src="personality.js?v=release-20261116-1"></script>
+<script src="analytics.js?v=release-20261116-1"></script>
+</body>
+</html>
+
+
+
+
+
+
+
+
